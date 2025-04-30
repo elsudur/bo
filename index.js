@@ -2,16 +2,16 @@
     'use strict';
     console.log('script bo.js loaded')
 
-    $('head').append('<link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css"><style>.move{height:200px;width:200px;position:fixed;background:lime;}</style>')
+    $('head').append(`<link rel='stylesheet' href='https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css'><style>.move{height:200px;width:200px;position:fixed;background:lime;}</style>`)
     const body = $('body')
-    body.append('<div class="move"></div><div class="move"></div><script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>')
+    body.append(`<div class='move'></div><div class='move'></div><script src='https://code.jquery.com/ui/1.14.1/jquery-ui.js'></script>`)
     let f = body.find('form')
     f.siblings('style').remove()
     f.css('display','none')
 
     //RENDERING
     let pasringHtml = (obj) =>{
-        return `<${obj.el} ${obj.id ? 'id="'+obj.id+'"' : ''} class="${obj.class|| ''}" ${obj.attr|| ''} style="${obj.style || ''}" >${obj.value}</${obj.el}>`
+        return `<${obj.el} ${obj.id ? `id="${obj.id}"` : ''} class='${obj.class|| ''}' ${obj.attr|| ''} style='${obj.style || ''}' >${obj.value}</${obj.el}>`
     }
     let toHtml = (obj) => {
         if(!obj) return
