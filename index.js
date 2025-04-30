@@ -1,5 +1,6 @@
 (function() {
     'use strict';
+    console.log('script bo.js loaded')
 
     $('head').append('<link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css"><style>.move{height:200px;width:200px;position:fixed;background:lime;}</style>')
     const body = $('body')
