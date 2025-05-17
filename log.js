@@ -1,1 +1,3 @@
-console.log('script loaded')
+<script>
+  console.log('script loaded')
+</script>
