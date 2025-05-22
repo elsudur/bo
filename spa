@@ -1,0 +1,1798 @@
+<script>
+(async function() {
+
+
+  'use strict';
+
+  const initCss = () => {
+    let xcss = `
+  <style>
+  @keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  .blink {
+    animation: blink 1s infinite;
+  }
+
+  :root {
+    --bg-h:20;
+    --bg-s:100%;
+    --bg-l:1.76%;
+    --bg-a:100%;
+    --backdrop: hsl(var(--bg-h) var(--bg-s) var(--bg-l) / var(--bg-a));
+    --background: hsl(var(--bg-h), var(--bg-s), var(--bg-l));
+    --background-01:hsl(var(--bg-h), var(--bg-s), calc(var(--bg-l) + 10%));
+    --background-02:hsl(var(--bg-h), var(--bg-s), calc(var(--bg-l) + 20%));
+    --background-03:hsl(var(--bg-h), var(--bg-s), calc(var(--bg-l) + 30%));
+    --background-001:hsl(var(--bg-h), var(--bg-s), calc(var(--bg-l) + 1%));
+    --background-002:hsl(var(--bg-h), var(--bg-s), calc(var(--bg-l) + 2%));
+    --background-003:hsl(var(--bg-h), var(--bg-s), calc(var(--bg-l) + 3%));
+    --fg-h:0;
+    --fg-s:0%;
+    --fg-l:0%;
+    --foreground: hsl(var(--fg-h), var(--fg-s), var(--fg-l));
+    --cursorColor: #a5a2a2;
+    --selectionBackground: #4a4543;
+  }
+
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--background-003);
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--background-01);
+    border-radius: 10px;
+    cursor: pointer;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--foreground);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: var(--background);
+  }
+
+  * {
+      box-sizing: border-box;
+  }
+
+  html, body, div, span, applet, object, iframe,
+  h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+  a, abbr, acronym, address, big, cite, code,
+  del, dfn, em, img, ins, kbd, q, s, samp,
+  small, strike, strong, sub, sup, tt, var,
+  b, u, i, center,
+  dl, dt, dd, ol, ul, li,
+  fieldset, form, label, legend,
+  table, caption, tbody, tfoot, thead, tr, th, td,
+  article, aside, canvas, details, embed,
+  figure, figcaption, footer, header, hgroup,
+  menu, nav, output, ruby, section, summary,
+  time, mark, audio, video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+  }
+
+  /* HTML5 display-role reset for older browsers */
+  article, aside, details, figcaption, figure,
+  footer, header, hgroup, menu, nav, section {
+    display: block;
+  }
+
+  body {
+    line-height: 1;
+  }
+
+  ol, ul {
+    list-style: none;
+  }
+
+  blockquote, q {
+    quotes: none;
+  }
+
+  blockquote:before, blockquote:after,
+  q:before, q:after {
+    content: '';
+    content: none;
+  }
+
+  table {
+    border-collapse: collapse;
+    border-spacing: 0;
+  }
+
+  html {
+    font-size: 62.5%;
+  }
+
+  body {
+    position: relative;
+    margin: 0;
+    padding: 0;
+    color: var(--foreground);
+    width: 100vw;
+    height: 100vh;
+    font-family: "lexend", sans-serif; /*'Fira Code', monospace;*/
+    overflow: hidden;
+    background-image: radial-gradient( circle, var(--background-01) 0, var(--background-001) 100% );
+  }
+
+  #root {
+    width: 100%;
+    height: 100%;
+  }
+
+  #loading {
+    display:none;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    background: url(https://upload.wikimedia.org/wikipedia/commons/7/7a/Ajax_loader_metal_512.gif);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 60px;
+    z-index: 1;
+    backdrop-filter: brightness(0.5);
+  }
+  #wallpaper {
+    width: 100%; height: 100%; position: absolute; top: 0; left: 0;
+  }
+  #wallpaper > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  #mask {
+    display:none;
+    position:absolute;
+    top:0;
+    left:0;
+    z-index:999;
+    cursor:grabbing;
+    border: 2px dashed var(--foreground);"
+  }
+
+  #failmessage {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    backdrop-filter: brightness(0.5);
+  }
+
+  #failmessage > div {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    height: 200px;
+    background: var(--background);
+    border: 1px solid var(--background-03);
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    font-size: 2em;
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 12px 28px 0px, rgba(0, 0, 0, 0.1) 0px 2px 4px 0px,
+    rgba(255, 255, 255, 0.05) 0px 0px 0px 1px inset;
+    flex-direction: column;
+  }
+
+  #failmessage > div .glyphicon {
+    color: yellow;
+  }
+
+  #failmessage > div > button {
+    width: 8rem;
+    height: 2.4rem;
+    border-radius: 0.6rem;
+    border: 1px solid var(--background-02);
+    color: rgb(255, 254, 255);
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 12px 28px 0px, rgba(0, 0, 0, 0.1) 0px 2px 4px 0px;
+    cursor: pointer;
+    background: var(--background-02);
+    font-size: 0.8em;
+  }
+
+  #failmessage > div > button:hover {
+    background: var(--background-03);
+  }
+
+  #context-menu {
+    position: fixed;
+    top:0;
+    left:0;
+    display: none;
+    background: var(--background);
+    z-index: 10000;
+    padding: 0.5rem;
+    border-radius: 0.8rem;
+    border: 1px solid var(--background-03);
+    min-width: 15rem;
+    max-width: 25rem;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  }
+
+  #context-menu > div {
+    width: 100%;
+    cursor: pointer;
+    user-select: none;
+    font-size: 1.2rem;
+    padding: 0.3rem 1rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    border-radius: 0.4rem;
+    overflow: hidden;
+  }
+  #context-menu > div:hover {
+    outline: none;
+    background: var(--foreground);
+    color: var(--background);
+  }
+
+  /*TOPNAVBAR*/
+  #topnav {
+      width: 100%;
+      padding: 0.1rem 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      color: var(--foreground);
+      box-shadow: 0 2px 10px var(--background-001);
+      backdrop-filter:blur(20px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 1000;
+  }
+
+  #topnav > ul {
+    display: flex;
+    align-items: center;
+  }
+  #topnav > ul > li {
+    position: relative;
+    font-size: 1.5em;
+    margin: 0 4px;
+    text-shadow: 0 3px 10px rgba(0, 0, 0, 0.288);
+    transition: 0.2s;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    padding: 4px 8px;
+  }
+  #topnav > ul > li:hover {
+    border-radius: 3px;
+    background-color:var(--backdrop);
+  }
+
+  #topnav li > ul {
+    display: none;
+    position: absolute;
+    align-items: center;
+    flex-direction: column;
+    top: 100%;
+    margin-top: 1px;
+    padding: 4px;
+    width: fit-content;
+    background: var(--backdrop);
+    border-radius: 5px;
+    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.363);
+    white-space: nowrap;
+  }
+  #topnav > ul:nth-child(1) > li > ul {
+    left: 0;
+  }
+  #topnav > ul:nth-child(2) > li > ul {
+    right:0;
+  }
+  #topnav li:hover > ul {
+    display: flex;
+  }
+
+  li > ul > li {
+    width: 100%;
+    border-bottom: 1px solid var(--background-02);
+    padding-bottom: 5px;
+    margin-bottom: 5px !important;
+  }
+
+  li > ul > li:last-child {
+    border-bottom: 0;
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  li > ul > li > div {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    text-align: left;
+    font-weight: 100;
+    padding: 4px 8px;
+    border-radius: 5px;
+    transition: 80ms;
+    font-size: 14px;
+    justify-content: space-between;
+    gap:10px;
+  }
+  li > ul > li > div:hover {
+    background: var(--background-02);
+  }
+
+  li > ul > li > div:active {
+    background: var(--background-03);
+  }
+
+  /*DOCKER*/
+  .dock {
+    display: flex;
+    align-items: center;
+    position: fixed;
+    padding: 0.2rem 0.5rem 0 0.5rem;
+    bottom: 3%;
+    left: 50%;
+    height: 65px;
+    transform: translateX(-50%);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--background-03);
+    border-radius: 14px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.555);
+  }
+
+  .dock .point {
+    width: 5px;
+    height: 5px;
+    margin: 0;
+    background: #f08080;
+    border-radius: 50%;
+    display: none;
+    transition: 0.3s;
+  }
+
+  .dock .column {
+    width: 1px;
+    height: 45px;
+    margin: 0 4px;
+    background: var(--background-03);
+    border:none;
+  }
+
+  .dock .icon {
+    position: relative;
+    display: grid;
+    place-items: center;
+    background: none;
+    border: none;
+    outline: none;
+    transition: all 0.3s;
+    transform: translate3d(0px, 0%, 0px);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .dock .icon::after {
+    /*font-size: 1.5em;*/
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.39);
+    top: -25%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+    max-width: 80px;
+    padding: 5px;
+    border-radius: 5px;
+    white-space: nowrap;
+  }
+
+  .dock .icon:nth-child(1):hover::after {
+    content: "Back Office";
+  }
+
+  .dock .icon:nth-child(2):hover::after {
+    content: "PettyCash";
+  }
+
+  .dock .icon:nth-child(3):hover::after {
+    content: "App store";
+  }
+
+  .dock .icon:nth-child(4):hover::after {
+    content: "Message";
+  }
+
+  .dock .icon:nth-child(5):hover::after {
+    content: "Itunes music";
+  }
+
+  .dock .icon:nth-child(6):hover::after {
+    content: "VScode";
+  }
+
+  .dock .icon:nth-child(7):hover::after {
+    content: "Mail";
+  }
+
+  .dock .icon:nth-child(8):hover::after {
+    content: "Photos";
+  }
+
+  .dock .icon:nth-child(9):hover::after {
+    content: "maps";
+  }
+
+  .dock .icon:nth-child(10):hover::after {
+    content: "Calculator";
+  }
+
+  .dock .icon:nth-child(11):hover::after {
+    content: "notes";
+  }
+
+  .dock .icon:nth-child(12):hover::after {
+    content: "terminal";
+  }
+  .dock .icon:nth-child(13):hover::after {
+    content: "Preferences";
+  }
+
+  .dock .icon img {
+    width: 4.6rem;
+    transition: 0.2s;
+    transform: translateY(-2.5px);
+    border-radius: 10px;
+  }
+
+  .dock .icon:hover img {
+    margin: 0 0 40px 0;
+    width: 7.1rem;
+  }
+  .dock .icon:hover + .icon img {
+    width: 5.6rem;
+    margin: 0 0 25px 0;
+  }
+
+  .dock .icon img:active {
+    filter: brightness(0.6) drop-shadow(0 0 10px #2c2c2c);
+  }
+
+
+  .dragContainer {
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .desktopIconsContainer {
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
+    overflow: hidden;
+    padding: 2rem;
+
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    display: grid;
+    grid-template-rows: repeat(auto-fill, 7rem);
+    grid-template-columns: repeat(auto-fill, 7rem);
+    gap: 10px;
+    grid-auto-flow: column;
+  }
+
+  .iconContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .iconContainer:focus {
+    outline: none;
+  }
+
+  .iconContainer  > span {
+    font-size: 3em;
+    padding: 3px;
+  }
+  .iconContainer:focus  > svg,
+  .iconContainer:focus  > span {
+    border: 2px solid var(--background-03);
+    border-radius: 0.8rem;
+  }
+
+  .iconContainer > div {
+    margin-top: 0.4rem;
+    font-size: 1.2rem;
+    padding: 0.3rem;
+    border-radius: 0.3rem;
+    max-width: 8rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    user-select: none;
+  }
+
+  .iconContainer:focus > div {
+    background: var(--foreground);
+    color: var(--background);
+  }
+
+  .windowContainer {
+    position: absolute;
+    background: var(--backdrop);
+    border: 1px solid var(--background-02);
+    border-radius: 7px;
+    overflow: hidden;
+
+    display: grid;
+    grid-template-rows: min-content calc(100% - 3rem);
+    grid-template-columns: 100%;
+
+    z-index: 0;
+    transition: box-shadow 0.15s;
+    max-height: 100vh;
+    max-width: 100vw;
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 12px 28px 0px, rgba(0, 0, 0, 0.1) 0px 2px 4px 0px,
+      rgba(255, 255, 255, 0.05) 0px 0px 0px 1px inset;
+  }
+
+  .windowBar {
+    width: 100%;
+    height: 3rem;
+    position: relative;
+    background: var(--background-01);
+    cursor: grab;
+  }
+
+  .windowBar:active {
+    cursor: grabbing;
+  }
+
+  .windowBarButtonContainer {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+  }
+
+  .windowBarButtonContainer > div {
+    margin-right: 0.8rem;
+    position: relative;
+  }
+
+  .windowBarButton {
+    width: 1.2rem;
+    height: 1.2rem;
+    border-radius: 100%;
+    font-family: monospace;
+    cursor: pointer;
+  }
+
+  .windowBarButton:hover {
+    box-shadow: 0px 0px 2px 2px var(--background-03);
+    transform: scale(1.5);
+
+  }
+
+  .windowBarButton::after {
+    position: absolute;
+    top: 1px;
+    left: 4px;
+  }
+
+  .windowBarButton:nth-child(1) {
+    margin-left: 1rem;
+    background: #ff605c;
+  }
+  .windowBarButton:nth-child(1):hover::after {
+    content: 'x'
+  }
+  .windowBarButton:nth-child(2) {
+    background: #ffbd44;
+  }
+  .windowBarButton:nth-child(2):hover::after {
+    content: '-'
+  }
+  .windowBarButton:nth-child(3) {
+    background: #00ca4e;
+  }
+  .windowBarButton:nth-child(3):hover::after {
+    content: '+'
+  }
+  .windowBarButton.disable{
+    filter: grayscale(1);
+    cursor: not-allowed !important;
+  }
+
+  .windowName {
+    color: var(--foreground);
+    /*font-family: 'Roboto', sans-serif;*/
+    font-size: 1.6rem;
+    font-weight: bold;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    user-select: none;
+  }
+
+  .resizeHandle {
+    width: 8px;
+    height: 8px;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: red;
+    cursor: nwse-resize;
+    opacity: 0;
+  }
+
+  /*App Setting*/
+  .windowBodyContainer {
+    display: grid;
+    grid-template-columns: minmax(20rem, 1fr) 3fr;
+    grid-template-rows: 100%;
+    max-height: 100%;
+    padding: 2rem;
+    gap: 2rem;
+  }
+
+  .settingsTabsWrapper {
+    padding: 1rem;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    gap: 0.4rem;
+    flex-direction: column;
+    align-items: flex-start;
+    background: var(--background-003);
+    border-radius: 0.8rem;
+    border: 1px solid var(--background-003);
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  }
+
+  .settingTab {
+    display: flex;
+    gap: 1rem;
+    font-size: 1.2rem;
+    padding: 0.6rem 1rem;
+    cursor: pointer;
+    border-radius: 0.8rem;
+    width: 100%;
+  }
+
+  .settingTab.selected {
+    outline: none;
+    background: var(--foreground);
+    color: var(--background);
+  }
+
+  .settingTab.selected > span {
+    color: var(--background);
+  }
+
+  .tabContentWrapper {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow:auto;
+    user-select: none;
+  }
+
+  .tabContentWrapper > h2 {
+    font-size: 2rem;
+    font-weight: 700;
+  }
+
+  .separator {
+    height: 1px;
+    width: 100%;
+    background: var(--foreground);
+    opacity: 0.2;
+    margin: 1rem 0;
+  }
+
+  .settingsRow {
+    display: flex;
+    gap: 1rem;
+    font-size: 1.2rem;
+    width: 100%;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-radius: 0.4rem;
+  }
+
+  .settingsRow > span:nth-child(1) {
+    width: 70px
+  }
+
+  .sliderColor {
+    background: linear-gradient(to right,
+      hsl(0, 100%, 50%), hsl(60, 100%, 50%),
+      hsl(120, 100%, 50%), hsl(180, 100%, 50%),
+      hsl(240, 100%, 50%), hsl(300, 100%, 50%),
+      hsl(360, 100%, 50%));
+    -webkit-appearance: none;
+    appearance: none;
+    border-radius: 7.5px;
+    cursor: pointer;
+    height: 10px;
+    width: 100%;
+  }
+  .sliderColor.light {
+    background: linear-gradient(to right, hsl(0, 0%, 0%), hsl(0, 0%, 100%));
+  }
+
+  .sliderColor::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #eee;
+    border: 1px solid #aaa;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .sliderColor::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #eee;
+    border: 1px solid #aaa;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  input.url-wallpaper {
+    background: var(--foreground);
+    color: var(--background);
+    outline: 0;
+    padding: 5px;
+    height: 20px;
+    width: 100%;
+    border-radius: 5px;
+    border: 0;
+  }
+
+  img.thumb-wallpaper {
+    height: auto;
+    width: 220px;
+    border: 1px solid var(--foreground);
+    border-radius: 5px;
+  }
+
+  /*OTHER COMPONEN STYLE*/
+  input[type=checkbox]:focus {
+    outline: 0;
+  }
+
+  label:has([role=switch]) {
+    zoom: var(--switch-zoom, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 1em;
+    cursor: pointer;
+    user-select: none;
+  }
+  input[role=switch] {
+    appearance: none;
+    -webkit-appearance: none;
+    box-sizing: content-box;
+    display: inline-flex;
+    padding-inline: 0 24px;
+    border: none;
+    height: auto;
+    width: auto;
+    margin: 0;
+    border-radius: 100px;
+    background: var(--foreground);
+    transition: .2s;
+    user-select: none;
+    outline: none;
+    filter: grayscale(1);  /* de-colorize the switch */
+    cursor: pointer;
+  }
+
+  input[role=switch]:checked {
+    padding-inline: 24px 0;
+    filter: none;
+  }
+
+  input[role=switch]::before {
+    content: '';
+    padding: 8px;
+    margin: 1px;
+    background: var(--background-03);
+    border-radius: 50%;
+    transition: inherit;
+  }
+  .glyphicon.glyphicon-ok {
+    color: green;
+  }
+  .glyphicon.glyphicon-remove {
+    color: red;
+  }
+  </style>
+  `
+    $('head').append(xcss)
+  }
+
+  const stateCss = {
+    mask: {
+      isLoad: false,
+      load: () => {
+        stateCss.mask.isLoad = true;
+        $('head').append(`
+  <style>
+  #mask {
+    display:none;
+    position:absolute;
+    top:0;
+    left:0;
+    z-index:999;
+    cursor:grabbing;
+    border: 2px dashed var(--foreground);"
+  }
+  </style>
+          `)
+      }
+    },
+    failmessage: {
+      isLoad: false,
+      load: () => {
+        stateCss.failmessage.isLoad = true;
+        $('head').append(`
+  <style>
+  #failmessage > div {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    height: 200px;
+    background: var(--background);
+    border: 1px solid var(--background-03);
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    font-size: 2em;
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 12px 28px 0px, rgba(0, 0, 0, 0.1) 0px 2px 4px 0px,
+    rgba(255, 255, 255, 0.05) 0px 0px 0px 1px inset;
+    flex-direction: column;
+  }
+
+  #failmessage > div .glyphicon {
+    color: yellow;
+  }
+
+  #failmessage > div > button {
+    width: 8rem;
+    height: 2.4rem;
+    border-radius: 0.6rem;
+    border: 1px solid var(--background-02);
+    color: rgb(255, 254, 255);
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 12px 28px 0px, rgba(0, 0, 0, 0.1) 0px 2px 4px 0px;
+    cursor: pointer;
+    background: var(--background-02);
+    font-size: 0.8em;
+  }
+
+  #failmessage > div > button:hover {
+    background: var(--background-03);
+  }
+  </style>
+          `)
+      }
+    }
+  }
+  const initElement = () => {
+    let element = `
+      <div id="root">
+        <div id="wallpaper">
+        <img src=""/>
+        </div>
+        <div id="loading"></div>
+        <div id="context-menu"></div>
+        <div class="dragContainer">
+          <!--div id="desktop-icons-container" class="desktopIconsContainer">
+            <div tabindex="0" class="iconContainer dbclick" flag="bo">
+              <svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="40px" height="40px" viewBox="0 0 300.000000 300.000000" preserveAspectRatio="xMidYMid meet">
+              <g transform="translate(0.000000,300.000000) scale(0.100000,-0.100000)" stroke="currentColor" fill="currentColor" stroke-width="0">
+              <path d="M970 2516 l-525 -333 0 -338 0 -339 215 -137 c118 -75 357 -227 530 -336 l315 -200 3 -342 2 -341 78 48 c42 27 142 90 222 140 80 51 287 182 460 291 l315 198 3 334 2 334 -182 116 c-101 64 -344 219 -540 344 l-358 227 0 334 c0 184 -3 334 -7 333 -5 0 -244 -150 -533 -333z m540 -677 l0 -331 -22 14 c-13 8 -130 81 -261 163 -130 83 -236 153 -235 157 3 8 500 327 511 328 4 0 7 -149 7 -331z m265 -502 c142 -89 258 -167 258 -172 -1 -10 -500 -324 -515 -325 -5 0 -8 149 -8 330 0 182 2 330 4 330 2 0 119 -73 261 -163z"></path>
+              </g>
+              </svg>
+              <div>Back Office</div>
+            </div>
+            <div tabindex="0" class="iconContainer dbclick" flag="finance">
+              <span class="glyphicon glyphicon-briefcase"></span>
+              <div>Finance</div>
+            </div>
+            <div tabindex="0" class="iconContainer dbclick" flag="armada">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 122.88 73.14" width="40px" height="40px" stroke="currentColor" fill="currentColor" stroke-width="0">
+    <path d="M41.63,58.19a12.9,12.9,0,1,0,25.64,2,13.7,13.7,0,0,0-.16-2H89.28a14.22,14.22,0,0,0-.12,1.87,13.08,13.08,0,0,0,26.16,0,12.7,12.7,0,0,0-.21-2.33,8,8,0,0,0,7.77-7.93V24.14L106.61,6.64H84.32V45.51h-80A3.27,3.27,0,0,0,1,48.68V55A3.27,3.27,0,0,0,4.31,58.2H7.94a12.48,12.48,0,0,0-.16,2,12.9,12.9,0,1,0,25.79,0,13.7,13.7,0,0,0-.16-2h8.22ZM76.48,0H4.1A4.12,4.12,0,0,0,0,4.1V42.27H80.58V4.1A4.11,4.11,0,0,0,76.48,0ZM15.71,60.26c0,6.53,9.92,6.53,9.92,0,0-7-9.92-6.27-9.92,0Zm81.49-.21c0,6.61,10.06,6.61,10.06,0s-10.06-6.65-10.06,0Zm9.33-45.85L114.74,24v3.56H92.49V14.2ZM49.42,60.26c0,6.53,9.92,6.53,9.92,0s-9.92-6.52-9.92,0Z"></path>
+  </svg>
+              <div>Armada</div>
+            </div>
+            <div tabindex="0" class="iconContainer dbclick" flag="setting">
+              <span class="glyphicon glyphicon-cog"></span>
+              <div>Settings</div>
+            </div>
+            <div tabindex="0" class="iconContainer ">
+              <span class="glyphicon glyphicon-console"></span>
+              <div>Terminal</div>
+            </div>
+            <div tabindex="0" class="iconContainer">
+              <span class="glyphicon glyphicon-cloud"></span>
+              <div>Drive</div>
+            </div>
+            <div tabindex="0" class="iconContainer dbclick" flag="donate">
+              <span class="glyphicon glyphicon-qrcode"></span>
+              <div>Donate</div>
+            </div>
+            <div tabindex="0" class="iconContainer dbclick">
+              <span class="glyphicon glyphicon-sunglasses"></span>
+              <div>README.md</div>
+            </div>
+          </div-->
+        <div id="mask"></div>
+        </div>
+        <div id="failmessage">
+          <div>
+            <span class="glyphicon glyphicon-alert"></span>
+            <p id="appcrash">Error 404 Crash</p>
+            <button onclick="window.location.reload()">Reload</button>
+          </div>
+        </div>
+        <div id="topnav">
+          <ul>
+            <li><span class="glyphicon glyphicon-cog"></span></li>
+            <li><span class="glyphicon glyphicon-search"></span></li>
+            <li><span class="glyphicon glyphicon-tasks"></span>
+              <ul>
+                <li><div>Absensi <span class="glyphicon glyphicon-ok"></span></div></li>
+                <li>
+                  <div>Setoran Driver <span class="glyphicon glyphicon-ok"></span></div>
+                  <div>Setoran Cabang <span class="glyphicon glyphicon-ok"></span></div>
+                  <div>Rekoncile <span class="glyphicon glyphicon-ok"></span></div>
+                </li>
+                <li>
+                  <div>PettyCash<span class="glyphicon glyphicon-ok"></span></div>
+                  <div>Print Report<span class="glyphicon glyphicon-ok"></span></div>
+                </li>
+                <li><div>Scan Resi<span class="glyphicon glyphicon-ok"></span></div></li>
+                <li><div>Lainnya...<span class="glyphicon glyphicon-ok"></span></div></li>
+              </ul>
+            </li>
+            <li><span class="glyphicon glyphicon-user"></span>
+              <ul>
+                <li><div>Setup</div></li>
+                <li><div>Logout</div></li>
+              </ul>
+            </li>
+            <li><span id="tanggal"></span></li>
+            <li><span id="jam"></span><span class="blink"> : </span><span id="menit"></span></li>
+          </ul>
+        </div>
+        <div class="dock">
+        <button class="icon" flag="bo">
+          <img src="https://play-lh.googleusercontent.com/nm76qc65Cw0f6RwnV62pmnA9J5levTTecDNAMXSJ8oCUHyw5_9JZYeK-o4nIczDBZ6M=s56-rw">
+        </button>
+        <button class="icon" flag="pettycash">
+          <img src="https://play-lh.googleusercontent.com/kPYduVaS9Eet_MolYAQvz1ovfqUO2ukT4zFL97kvsriMFRBO_9p5m7Jt-do0yrYaLg=w100-h100-rw">
+          <hr class="point " id="point-launchpad" style="display: none;">
+        </button>
+        <button class="icon" flag="filemanager">
+          <img src="https://play-lh.googleusercontent.com/nSAQyHvwp3l_gICNNb86R-DmdX2nPwYO0isx4QVtbdIA9j8APUuyBod5515BPBQ9CA=s56-rw" >
+          <hr class="point hidden">
+        </button>
+        <hr class="column">
+        <button class="icon" flag="chat">
+          <img src="https://play-lh.googleusercontent.com/FtGKSwVtpmMxKoJrJuI837DkYGRsqlMdiVPAd8bomLQZ3_Hc55XokY_dYdXKgGagiYs=w100-h100-rw">
+        </button>
+        <button class="icon" flag="map">
+          <img src="https://play-lh.googleusercontent.com/Kf8WTct65hFJxBUDm5E-EpYsiDoLQiGGbnuyP6HBNax43YShXti9THPon1YKB6zPYpA=w100-h100-rw" >
+          <hr class="point hidden" id="point-maps">
+        </button>
+        <button class="icon" flag="texteditor">
+          <img src="https://play-lh.googleusercontent.com/8cT0Y4kkdFuywFo8SxjC7Kv6I3fl2vUitoT9WDDlpZ4fTlV9oHuOnh8rF26ox1H4Mw=w100-h100-rw">
+          <hr class="point hidden" id="point-note">
+        </button>
+        <button accesskey="t" class="icon" flag="terminal">
+          <img src="https://play-lh.googleusercontent.com/m3oqSZCwmitiZ-Im-CQu_rqT5eLHilOp5IudBynv3COJUumFzuQaP2dgTDxRL_03f4x2=w100-h100-rw">
+          <hr class="point" id="point-terminal">
+        </button>
+        <button class="icon" flag="setting">
+          <img src="https://play-lh.googleusercontent.com/BnyBqiFJyVkmhHuQzNujjF38Ha4_umrMdCkO92-YV-OIyvN8DA5MXJG2rY7Idxjf3uE=w100-h100-rw">
+        </button>
+        <hr class="column">
+        <button class="icon" flag="trash">
+          <img src="https://play-lh.googleusercontent.com/gA81UoSpa04JUEoyWZTeTZvgIH4RJhXdSEfJL-vYTZDPxIlFHW0cmwKvzjMxc5c2dac=w100-h100-rw">
+        </button>
+      </div>
+      </div>
+  `
+    $('body').append(element)
+    let n = new Date()
+    $('#tanggal').text(`${n.toLocaleDateString('id-ID', { weekday: 'long' })}, ${n.getDate().toString().padStart(2, '0')}/${(n.getMonth() + 1).toString().padStart(2, '0')}/${n.getFullYear()}`)
+  }
+
+  const tunggu = (detik) => {
+    return new Promise(resolve => setTimeout(resolve, detik * 1000));
+  }
+  const userBo = $('.navbar-right li:nth-child(2) > a').text().replace(/\s+/g, ' ').trim().split('-')
+  const connection = {
+    bo: { status: true, user: userBo[0], cabang: userBo[2], token: null },
+    pettycash: { status: false, user: '', cabang: '', token: null },
+    drive: { status: false, user: '', token: null },
+    server: { status: false, user: '', token: null },
+  }
+
+  //looping fetch
+  const keepSession = async () => {
+    try {
+      let rsp = await fetch('https://bo.sentralcargo.co.id/Order/UploadResiForm.aspx')
+      if (rsp.redirected) throw new Error('Page redirected !')
+    }
+    catch (e) {
+      connection.bo.status = false
+      crashApp(e)
+      stopInterval()
+    }
+  }
+  let intervalSession = null
+  const loopingCookie = async () => {
+    intervalSession = setInterval(() => {
+      keepSession();
+    }, 60000);
+  };
+  const stopInterval = () => {
+    clearInterval(intervalSession);
+    console.log('Interval stopped');
+  };
+  //loopingCookie() //<<===========================================
+
+  const urlBo = 'https://bo.sentralcargo.co.id';
+  const getBO = async (url) => {
+    loading.show();
+    try {
+      let resp = await fetch(url);
+      if (!resp.ok) {
+        throw new Error("Permintaan gagal. Kode status: " + resp.status);
+      }
+      let respontxt = await resp.text();
+      loading.hide();
+      return { ok: true, data: respontxt };
+    }
+    catch (error) {
+      loading.hide();
+      return { ok: false, message: error };
+    };
+  }
+  const postBO = async (url, target, formDataArray) => {
+    loading.show();
+    try {
+      let rsp = await getBO(url);
+      if (!rsp.ok) throw new Error("FC_GET_BO. Error: " + rsp.message);
+      let parser = new DOMParser();
+      let xml = parser.parseFromString(rsp.data, 'text/html');
+      let viewState = xml.getElementById('__VIEWSTATE').value;
+      let eventValidation = xml.getElementById('__EVENTVALIDATION').value;
+      let formToPost = new FormData();
+      formDataArray.forEach(item => {
+        formToPost.append(item.name, item.value);
+      });
+      formToPost.append("__EVENTTARGET", target); //btn search = "ctl00$cphBody$btnSearch"
+      formToPost.append("__VIEWSTATE", viewState);
+      formToPost.append("__EVENTVALIDATION", eventValidation);
+      formToPost.append("__ASYNCPOST", "true");
+      rsp = await fetch(url, { method: "POST", body: formToPost });
+      if (!rsp.ok) {
+        throw new Error("FC_POST_BO. Error: " + rsp.status);
+      }
+      let respontxt = await rsp.text();
+      loading.hide();
+      return { ok: true, data: respontxt };
+    }
+    catch (error) {
+      loading.hide();
+      return { ok: false, message: error };
+    };
+  }
+
+  //message crash app
+  const crashApp = (msg) => {
+    let f = $('#failmessage')
+    f.show()
+    f.find('p').text(msg)
+  }
+
+  //Fitur Drag n Drop
+  const matrixTranslate = (matrixString) => {
+    let matrixValues = matrixString.substring(7, matrixString.length - 1).split(', ');
+    let x = parseFloat(matrixValues[4]);
+    let y = parseFloat(matrixValues[5]);
+    return { x, y };
+  }
+  const dragObjectInit = {
+    name: '',
+    win: null,
+    isDrag: false,
+    isMove: false,
+  }
+  let dragObject = { ...dragObjectInit };
+  const mousedownHandler = (base, e) => {
+    if (!dragObject.name) return
+    if (dragObject.name == '.table') {
+      dragObject.isDrag = true
+      dragObject.startX = e.clientX;
+      let w = base.closest('table')
+      w.css('cursor', 'col-resize')
+      dragObject.win = w
+      dragObject.th = w.css('grid-template-columns').split(' ')
+      dragObject.index = base.closest('th').index()
+      dragObject.init = dragObject.th[dragObject.index]
+    }
+    else {
+      let w = base.closest('.windowContainer')
+      let point = matrixTranslate(w.css('transform'))
+      mask.css({
+        display: 'block',
+        transform: `translate(${point.x}px, ${point.y}px)`,
+        height: w.css('height'),
+        width: w.css('width'),
+      })
+      dragObject.win = w
+      dragObject.isDrag = true
+      dragObject.startX = e.clientX;
+      dragObject.startY = e.clientY;
+      dragObject.initialX = (dragObject.name == '.drag') ? point.x : w.width()
+      dragObject.initialY = (dragObject.name == '.drag') ? point.y : w.height()
+      dragObject.minWidth = (dragObject.name == '.drag') ? 0 : 200
+      dragObject.minHeight = (dragObject.name == '.drag') ? 27 : 200
+      dragObject.maxWidth = (dragObject.name == '.drag') ? window.innerWidth - w.width() : window.innerWidth - e.clientX + w.width();
+      dragObject.maxHeight = (dragObject.name == '.drag') ? window.innerHeight - w.height() : window.innerHeight - e.clientY + w.height();
+    }
+    $(document).on('mousemove' + dragObject.name, mousemoveHandler)
+      .on('mouseup' + dragObject.name, mouseupHandler)
+  }
+  const mousemoveHandler = (e) => {
+    if (!dragObject.isDrag) return;
+    if (dragObject.name == '.table') {
+      let newX = parseFloat(dragObject.init)
+      newX += e.clientX - dragObject.startX
+      dragObject.th[dragObject.index] = newX + 'px'
+      dragObject.win.css('grid-template-columns', dragObject.th.join(' '))
+    }
+    else {
+      dragObject.isMove = true
+      const deltaX = e.clientX - dragObject.startX;
+      const deltaY = e.clientY - dragObject.startY;
+      let newX = dragObject.initialX + deltaX
+      let newY = dragObject.initialY + deltaY
+      dragObject.currentX = (newX < dragObject.minWidth) ? dragObject.minWidth : (newX > dragObject.maxWidth) ? dragObject.maxWidth : newX
+      dragObject.currentY = (newY) < dragObject.minHeight ? dragObject.minHeight : (newY > dragObject.maxHeight) ? dragObject.maxHeight : newY;
+      if (dragObject.name == '.drag') {
+        mask.css('transform', `translate(${dragObject.currentX}px, ${dragObject.currentY}px)`);
+      }
+      else {
+        mask.css({ width: dragObject.currentX + 'px', height: dragObject.currentY + 'px' });
+      }
+    }
+  }
+  const mouseupHandler = (e) => {
+    if (!dragObject.isDrag) return;
+    if (dragObject.name == '.table') {
+      dragObject.win.css('cursor', 'auto')
+    } else {
+      if (dragObject.isMove) {
+        dragObject.isMove = false
+        if (dragObject.name == '.drag') {
+          dragObject.win.css({
+            transition: 'transform 0.3s ease-in-out',
+            transform: `translate(${dragObject.currentX}px, ${dragObject.currentY}px)`,
+          });
+        } else {
+          dragObject.win.css({
+            width: dragObject.currentX + 'px',
+            height: dragObject.currentY + 'px',
+            transition: 'width 0.3s ease-in-out, height 0.3s ease-in-out',
+          });
+        }
+      }
+      mask.hide()
+    }
+    $(document).off('mousemove' + dragObject.name)
+      .off('mouseup' + dragObject.name)
+    clearDragObject();
+  }
+  const clearDragObject = () => {
+    dragObject = { ...dragObjectInit }
+  }
+
+  //window
+  let winCount = 1
+  const winOnTop = (index, close = false) => {
+    if (index == winCount - 1) return
+    $('.windowContainer').each(function (i) {
+      let base = $(this)
+      let z = Number(base.css('z-index'))
+      if (z == index) {
+        close ? '' : base.css('z-index', winCount - 1)
+      }
+      if (z > index) base.css('z-index', z - 1)
+    })
+  }
+  const newWindow = (title, width, height, body = '') => {
+    let temp = $(`
+  <div class="windowContainer" style="display:none;width:${width}px; height:${height}px;top:0; left:0; transform: translate(calc((100vw / 2) - ${width / 2}px), calc((100vh / 2) - ${height / 2}px));z-index:${winCount};">
+    <div class="windowBar">
+      <div class="windowBarButtonContainer">
+        <div class="windowBarButton xclose onclickapp" flag="window" action="close" title="Close"></div>
+        <div class="windowBarButton xmin disable"></div>
+        <div class="windowBarButton xmax" title="Maximize"></div>
+      </div>
+      <div class="windowName">${title}</div>
+    </div>
+    ${body}
+    <div class="resizeHandle" style="user-select: none; touch-action: none;"></div>
+  </div>`)
+    $('.dragContainer').append(temp)
+    temp.fadeIn()
+    winCount++
+  }
+  const closeWindow = ($el) => {
+    $el.closest('.windowContainer').remove()
+    winCount--
+    //winOnTop(Number(action), 'close')
+  }
+  const windowHandler = ($el) => {
+    let action = $el.attr('action')
+    if (action == 'close') {
+      closeWindow($el)
+    }
+  }
+
+  const settingHandler = ($el) => {
+    $('.settingTab').removeClass('selected')
+    $el.addClass('selected')
+    let action = $el.attr('action')
+    tabSelected(action)
+  }
+
+  const flagHandler = {
+    window: windowHandler,
+    setting: settingHandler
+  }
+
+  const pasringHtml = (o) => {
+    let h = `<${o.el}`;
+    h += o.id ? ` id="${o.id}"` : '';
+    h += o.class ? ` class="${o.class}"` : '';
+    h += o.attr ? ` ${o.attr}` : '';
+    h += o.style ? ` style="${o.style}"` : '';
+    h += `>${o.value || ''}</${o.el}>`;
+    return h;
+  };
+  const toHtml = (obj) => {
+    if (!obj) return
+    let rsp = '';
+    if (!obj.length) {
+      if (obj.value == '' || typeof (obj.value) == 'string') {
+        rsp += pasringHtml(obj)
+      } else {
+        rsp += pasringHtml({ ...obj, value: toHtml(obj.value) })
+      }
+    }
+    else {
+      for (let i = 0; i < obj.length; i++) {
+        if (obj[i].value == '' || typeof (obj[i].value) == 'string') {
+          rsp += pasringHtml(obj[i])
+        } else {
+          rsp += pasringHtml({ ...obj[i], value: toHtml(obj[i].value) })
+        }
+      }
+    }
+
+    return rsp
+  }
+
+  const Container = {
+    el: 'div',
+    class: 'windowBodyContainer'
+  }
+  const SettingsTabsWrapper = {
+    el: 'div',
+    class: 'settingsTabsWrapper'
+  };
+  const SettingsTab = {
+    el: 'div',
+    class: 'settingTab onclickapp'
+  }
+  const TabContentWrapper = {
+    el: 'div',
+    class: 'tabContentWrapper'
+  }
+  const appSetting = (tab) => {
+    const settingsTabs = [
+      { name: 'Device info', icon: '<span class="glyphicon glyphicon-tags"></span>' },
+      { name: 'Account', icon: '<span class="glyphicon glyphicon-user"></span>' },
+      { name: 'Theme', icon: '<span class="glyphicon glyphicon-picture"></span>' },
+      { name: 'Memory', icon: '<span class="glyphicon glyphicon-hdd"></span>' },
+    ];
+
+    let tabObj = settingsTabs.map(item => {
+      return {
+        ...SettingsTab,
+        attr: `flag="setting" action="${item.name}"`,
+        value: `${item.icon}<div>${item.name}</div>`
+      }
+    })
+    return toHtml({
+      ...Container,
+      value: [
+        { ...SettingsTabsWrapper, value: tabObj },
+        {
+          ...TabContentWrapper, value: [
+            { el: 'h2', attr: 'id="settingName"', value: tab },
+            { el: 'div', class: 'separator' },
+            { el: 'div', class: 'tabContent', value: stateWindowSetting.tab[tab]() }
+          ]
+        }
+      ]
+    })
+  }
+  const stateWindowSetting = {
+    tabselected: 'Device info',
+    tab: {
+      device: () => {
+        let data = [
+          { label: 'Device ID', value: '32DS1AA' },
+          { label: 'Proxy', value: '/dev/proxy/bouncing' },
+          { label: 'G-Drive', value: '664551315SASF31354' },
+          { label: 'Status', value: 'Unregisted' }
+        ]
+        let obj = data.map(i => {
+          return { el: 'div', class: 'settingsRow', value: [{ el: 'span', value: i.label }, { el: 'span', value: i.value }] }
+        })
+        return toHtml(obj)
+      },
+      user: () => {
+        let data = [
+          { label: 'Username', value: connection.bo.user },
+          { label: 'Role', value: userBo[1] },
+          { label: 'Cabang', value: connection.bo.cabang },
+          { label: 'Rating', value: 'New User' }
+        ]
+        let obj = data.map(i => {
+          return { el: 'div', class: 'settingsRow', value: [{ el: 'span', value: i.label }, { el: 'span', value: i.value }] }
+        })
+        return toHtml(obj)
+      },
+      theme: () => {
+        let cfg = localConfig.theme
+        let data = [
+          { label: 'item', value: `<span style="font-weight:600">WALLPAPER</span>` },
+          { label: 'item', value: `<span>Available</span><input type="checkbox" role="switch" ${cfg.wall.use ? 'checked' : ''} style="accent-color: var(--foreground);width: 1.5em;height: 1.5em;" class="onchangeapp" flag="setting" action="wallpaper" option="use"/>` },
+          { label: 'item', value: `<span>URL</span><input class="url-wallpaper onchangeapp" flag="setting" action="wallpaper" option="url" type="text" value="${cfg.wall.url || 'https://'}" />` },
+          { label: 'item', value: `<span>Tumb</span><img class="thumb-wallpaper" src="${cfg.wall.url || ''}" alt="No-pict"/>` },
+          { label: 'separator' },
+          { label: 'item', value: `<span style="font-weight:600">BACKGROUND</span>` },
+          { label: 'item', value: `<span>Hue</span><input type="range" min="0" max="360" value="${cfg.bg.h || 0}" class="sliderColor onchangeapp" flag="setting" action="background" option="color"/>` },
+          { label: 'item', value: `<span>Satur</span><input type="range" min="0" max="100" value="${cfg.bg.s || 0}" class="sliderColor light onchangeapp" flag="setting" action="background" option="saturation"/>` },
+          { label: 'item', value: `<span>Light</span><input type="range" min="0" max="100" value="${cfg.bg.l || 0}" class="sliderColor light onchangeapp" flag="setting" action="background" option="light"/>` },
+          { label: 'item', value: `<span>Alpha</span><input type="range" min="0" max="100" value="${cfg.bg.a || 100}" class="sliderColor light onchangeapp" flag="setting" action="background" option="alpha"/>` },
+          { label: 'separator' },
+          { label: 'item', value: `<span style="font-weight:600">FOREGROUND</span>` },
+          { label: 'item', value: `<span>Hue</span><input type="range" min="0" max="360" value="${cfg.fg.h || 0}" class="sliderColor onchangeapp" flag="setting" action="foreground" option="color"/>` },
+          { label: 'item', value: `<span>Satur</span><input type="range" min="0" max="100" value="${cfg.fg.s || 0}" class="sliderColor light onchangeapp" flag="setting" action="foreground" option="saturation"/>` },
+          { label: 'item', value: `<span>Light</span><input type="range" min="0" max="100" value="${cfg.fg.l || 0}" class="sliderColor light onchangeapp" flag="setting" action="foreground" option="light"/>` }
+        ]
+        let obj = data.map(i => {
+          return (i.label == 'item') ? { el: 'div', class: 'settingsRow', value: i.value } : { el: 'div', class: 'separator' }
+        })
+        return toHtml(obj)
+      }
+    }
+  }
+  const tabSelected = (key) => {
+    if (stateWindowSetting.tabselected == key) return
+    $('#settingName').text(key);
+    stateWindowSetting.tabselected = key
+    if (key == 'Theme') {
+      $('.tabContentWrapper .tabContent').html(stateWindowSetting.tab.theme())
+    }
+    else if (key == 'Account') {
+      $('.tabContentWrapper .tabContent').html(stateWindowSetting.tab.user())
+    }
+    else if (key == 'Device info') {
+      $('.tabContentWrapper .tabContent').html(stateWindowSetting.tab.device())
+    }
+  }
+
+
+  initCss()
+  await tunggu(1)
+  let localConfig = {
+    theme: localStorage.getItem('theme')
+      ? JSON.parse(localStorage.getItem('theme'))
+      : { bg: { h: 20, s: 100, l: 1.76, a: 100 }, fg: { h: 0, s: 100, l: 100 }, wall: { use: false, url: 'https://w0.peakpx.com/wallpaper/155/553/HD-wallpaper-need-more-coffee-programmer-story-coffee-funny.jpg' } }
+  }
+
+
+
+  const root = $(':root')[0]
+  root.style.cssText = `
+    --bg-h: ${localConfig.theme.bg.h};
+    --bg-s: ${localConfig.theme.bg.s}%;
+    --bg-l: ${localConfig.theme.bg.l}%;
+    --bg-a: ${localConfig.theme.bg.a}%;
+    --fg-h: ${localConfig.theme.fg.h};
+    --fg-s: ${localConfig.theme.fg.s}%;
+    --fg-l: ${localConfig.theme.fg.l}%;
+  `;
+  $('form').hide()
+  initElement()
+  const craeteNavbarMenuGruop = (obj) => {
+    let ob = obj.map(o => {
+      return { el: 'div', attr: o.attr, value: o.name }
+    })
+    return { el: 'li', value: ob }
+  }
+  const navbarMenu = {
+    container: {},
+    data: [
+      {
+        label: '<span class="glyphicon glyphicon-home"></span>',
+        item: [
+          craeteNavbarMenuGruop([
+            { name: 'About Me', attr: 'class="blink" style="color:green;"' },
+            { name: 'About Me', attr: '' },
+            { name: 'About Me', attr: '' }
+          ]),
+          craeteNavbarMenuGruop([
+            { name: 'About Me', attr: '' },
+            { name: 'About Me', attr: '' },
+            { name: 'About Me', attr: '' }
+          ])
+        ]
+      },
+      {
+        label: 'File',
+        item: [
+          craeteNavbarMenuGruop([
+            { name: 'About Me', attr: '' },
+            { name: 'About Me', attr: '' },
+            { name: 'About Me', attr: '' }
+          ])
+        ]
+      },
+      {
+        label: 'Injector',
+        item: [
+          craeteNavbarMenuGruop([
+            { name: 'About Me', attr: '' },
+            { name: 'About Me', attr: '' },
+            { name: 'About Me', attr: '' }
+          ])
+        ]
+      },
+    ],
+    create: () => {
+      let obj = {
+        el: 'ul',
+        value: navbarMenu.data.map(i => {
+          return { el: 'li', value: i.label + '<ul>' + toHtml(i.item) + '</ul>' }
+        })
+      }
+      return toHtml(obj)
+    }
+  }
+  $('#topnav').prepend(navbarMenu.create())
+  const jam = $('#jam')
+  const menit = $('#menit')
+  function waktu() {
+    let t = new Date();
+    jam.text(t.getHours().toString().padStart(2, '0'))
+    menit.text(t.getMinutes().toString().padStart(2, '0'))
+  }
+  setInterval(waktu, 60000);
+  waktu()
+
+  //LOADING
+  const loading = {
+    isLoad: false,
+    el: $('#loading'),
+    show: () => {
+      if (loading.isLoad) return
+      loading.isLoad = true
+      loading.el.fadeIn()
+    },
+    hide: () => {
+      if (!loading.isLoad) return
+      loading.isLoad = false
+      loading.el.fadeOut()
+    }
+  }
+
+  //MASK DIV
+  const mask = $('#mask')
+
+  loading.show()
+  await tunggu(2)
+  $('#wallpaper img').attr('src', localConfig.theme.wall.url)
+  if (localConfig.theme.wall.use) {
+    $('#wallpaper').show()
+  }
+  else {
+    $('#wallpaper').hide()
+  }
+  loading.hide()
+
+  //EVENT
+  $('body').on('mousedown', '.resizer', function (e) {
+    if (dragObject.isDrag) return
+    let base = $(this)
+    dragObject.name = '.table';
+    mousedownHandler(base, e)
+  })
+  $('body').on('mousedown', '.windowContainer', function (e) {
+    let base = $(this)
+    let target = $(e.target)
+    winOnTop(Number(base.css('z-index')))
+    if (dragObject.isDrag) return
+    if (target.hasClass('windowBarButtonContainer')) {
+      dragObject.name = '.drag';
+    }
+    else if (target.hasClass('resizeHandle')) {
+      dragObject.name = '.resize';
+    }
+    else {
+      dragObject.name = '';
+    }
+    mousedownHandler(base, e)
+  })
+  $('body').on('click', '.onclickapp', function () {
+    let $el = $(this)
+    let flag = $el.attr('flag')
+    if (flagHandler[flag]) {
+      flagHandler[flag]($el)
+    }
+    else {
+      alert('flag not found !')
+    }
+  })
+  /*
+  $('body').on('dblclick', '.dbclick', function () {
+    let $el = $(this)
+    let flag = $el.attr('flag')
+    if (flag == 'setting') return newWindow('Setting', 600, 600, appSetting())
+    if (flag == 'bo') return newWindow('Back Office', 600, 400,)
+    if (flag == 'donate') return newWindow('Donate', 600, 400,)
+    return alert('Not found !. Flag: ' + flag)
+  })
+  */
+  $('.dock .icon').on('click', function (e) {
+    let $el = $(this)
+    let flag = $el.attr('flag')
+    switch (flag) {
+      case 'setting':
+        newWindow('Setting', 600, 600, appSetting('device'))
+        return;
+      case 'bo':
+        newWindow('Back Office', 600, 400,)
+        return;
+      case 'donate':
+        newWindow('Back Office', 600, 400,)
+        return;
+      case 'texteditor':
+        newWindow('TextEditor', 600, 400, appTextEditor())
+        return;
+      default:
+        alert('Not found !. Flag: ' + flag)
+    }
+  })
+  $('body').on('change', '.onchangeapp', function () {
+    let $el = $(this)
+    let action = $el.attr('action')
+    let option = $el.attr('option')
+    let val = parseFloat($el.val())
+    if (action == 'wallpaper') {
+      if (option == 'use') {
+        let use = $el.prop('checked')
+        if (use) {
+          $('#wallpaper').show()
+        } else {
+          $('#wallpaper').hide()
+        }
+        localConfig.theme.wall.use = use
+        localStorage.setItem('theme', JSON.stringify(localConfig.theme))
+        return
+      }
+      if (option == 'url') {
+        let val = $el.val()
+        $('#wallpaper img').attr('src', val)
+        $('img.thumb-wallpaper').attr('src', val)
+        localConfig.theme.wall.url = val
+        localStorage.setItem('theme', JSON.stringify(localConfig.theme))
+        return
+      }
+    }
+    if (action == 'background') {
+      if (option == 'color') {
+        root.style.setProperty('--bg-h', val)
+        localConfig.theme.bg.h = val
+        localStorage.setItem('theme', JSON.stringify(localConfig.theme))
+        return
+      }
+      if (option == 'saturation') {
+        root.style.setProperty('--bg-s', val + '%')
+        localConfig.theme.bg.s = val
+        localStorage.setItem('theme', JSON.stringify(localConfig.theme))
+        return
+      }
+      if (option == 'light') {
+        root.style.setProperty('--bg-l', val + '%')
+        localConfig.theme.bg.l = val
+        localStorage.setItem('theme', JSON.stringify(localConfig.theme))
+        return
+      }
+      if (option == 'alpha') {
+        root.style.setProperty('--bg-a', val + '%')
+        localConfig.theme.bg.a = val
+        localStorage.setItem('theme', JSON.stringify(localConfig.theme))
+        return
+      }
+    }
+    if (action == 'foreground') {
+      if (option == 'color') {
+        root.style.setProperty('--fg-h', val)
+        localConfig.theme.fg.h = val
+        localStorage.setItem('theme', JSON.stringify(localConfig.theme))
+        return
+      }
+      if (option == 'saturation') {
+        root.style.setProperty('--fg-s', val + '%')
+        localConfig.theme.fg.s = val
+        localStorage.setItem('theme', JSON.stringify(localConfig.theme))
+        return
+      }
+      if (option == 'light') {
+        root.style.setProperty('--fg-l', val + '%')
+        localConfig.theme.fg.l = val
+        localStorage.setItem('theme', JSON.stringify(localConfig.theme))
+        return
+      }
+    }
+  })
+
+  //Klik-Kanan
+  const objContextMenu = {
+    isOpen: false,
+    el: $('#context-menu'),
+    place: null
+  }
+  const contextMenu = (place, position, arr = []) => {
+    if (place == objContextMenu.place) {
+      objContextMenu.el.css('transform', `translate(${position.x}px, ${position.y}px)`)
+      if (!objContextMenu.isOpen) {
+        objContextMenu.isOpen = true
+        objContextMenu.el.show()
+      }
+    } else {
+      objContextMenu.isOpen = true
+      objContextMenu.place = place
+      objContextMenu.el.css('transform', `translate(${position.x}px, ${position.y}px)`)
+      if (arr.length > 0) {
+        let div = ''
+        for (let i = 0; i < arr.length; i++) {
+          div += arr[i]
+        }
+        objContextMenu.el.html(div)
+      }
+      objContextMenu.el.show()
+    }
+  }
+  const closeContextMenu = () => {
+    if (objContextMenu.isOpen) {
+      objContextMenu.isOpen = false
+      objContextMenu.el.hide()
+    }
+  }
+  $('body').on("click", '.dragContainer', function (e) {
+    closeContextMenu()
+  })
+  $('body').on("contextmenu", '.dragContainer', function (e) {
+    e.preventDefault();
+    let base = $(e.target)
+    if (base.hasClass('iconContainer')) return
+    if (base.closest('.iconContainer').length > 0) return
+    let cmenu = [
+      '<div onclick="window.location.reload()">Refresh</div>',
+      '<div >Develop</div>', '<div >Develop1</div>', '<div >Develop2</div>', '<div >Develop3</div>',
+    ]
+    contextMenu('desktop', { x: e.clientX, y: e.clientY }, cmenu)
+  })
+
+  //TEXT EDITOR
+  stateCss.texteditor = {
+    isLoad: false,
+    load: () => {
+      if (!stateCss.texteditor.isLoad) {
+        stateCss.texteditor.isLoad = true
+        $('head').append(`
+<style>
+.container-texteditor {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.container-texteditor textarea {
+  width: 100%;
+  height: 100%;
+  padding: 0.5rem;
+  font-size: 12px;
+  background: var(--backdrop);
+  color: var(--foreground);
+  outline: none;
+  border: none;
+  resize: none;
+}
+.container-texteditor textarea:focus {
+    outline: none;
+  }
+</style>
+`)
+      }
+    }
+  }
+
+  const appTextEditor = () => {
+    stateCss.texteditor.load()
+    return `
+    <div class='container-texteditor'>
+
+      <textarea></textarea>
+    </div>`
+  }
+
+
+
+
+
+})();
+</script>
